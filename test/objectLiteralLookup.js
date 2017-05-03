@@ -1,5 +1,5 @@
-const utils = require('./lib/utils.js');
-const bot = require('./bot.js');
+const utils = require('../lib/utils.js');
+const bot = require('../bot.js');
 
 ///////////////////////////////////////
 // Object Literal, "Hash Table" Lookup

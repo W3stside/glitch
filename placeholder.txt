@@ -1,108 +1,53 @@
+//Put whatever parts of code you want to placehold or whatever, when testing //here.
+
+//multiStop - removed from arret Etoile
+function multiStopFn (region, stop, sI, lL) {
+          
+          multiStop = {    
+            stopInfo: [
+              //stopInfo[0]
+              {
+                lineStr: 'M1',
+                senderID: senderID,
+                region: region,
+                line: '%3AOIF%3A100110001%3A1OIF439',
+                stop: stop,
+                startIterator: sI,
+                loopLimit: lL,
+                key: 0
+              },
+              //stopInfo[1]
+              {
+                lineStr: 'M2',
+                senderID: senderID,
+                region: region,
+                line: '%3AOIF%3A100110002%3A2OIF439',
+                stop: stop,
+                startIterator: sI,
+                loopLimit: lL,
+                key: 1
+              },
+              //stopInfo[2]
+              {
+                lineStr: 'M6',
+                senderID: senderID,
+                region: region,
+                line: '%3AOIF%3A100110006%3A6OIF439',
+                stop: stop,
+                startIterator: sI,
+                loopLimit: lL,
+                key: 2
+              }           
+            ]
+          };
+          multiStop.stopInfo.forEach(utils.multiSearchStop);
+        }
+
+/////////////////////////////////////////////////////////////////////
+
+
 const utils = require('./lib/utils.js');
 const bot = require('./bot.js');
-
-///////////////////////////////////////
-// Object Literal, "Hash Table" Lookup
-//////////////////////////////////////
-
-exports.findStopTest = function findStop (choice, senderID) {
-    var messageText = utils.cleanseText(choice);
-  //return new Promise ( (resolve,reject) => {
-    var region = 'fr-idf';
-    var line = ['0','1','2','3','4','5'];
-
-    var printStop = function (senderID, regionID, lineID, stopID) {
-      console.log( 'You chose ' + messageText + ' which has regionID: ' + regionID + ', lineID: ' + lineID + ', and stopID: ' + stopID);
-    }
-    
-    //console.log(messageText);
-  
-    var stops = {
-      'etoile': printStop,
-      'charles de gaulle': printStop,
-      'charles de gaulle etoile': printStop,
-
-      /*'la defense': utils.searchStop(senderID, 'fr-idf', '%3AOIF%3A100110001%3A1OIF439','%3AOIF%3ASA%3A8738221', 0, 4),
-      'defense': utils.searchStop(senderID, 'fr-idf', '%3AOIF%3A100110001%3A1OIF439','%3AOIF%3ASA%3A8738221', 0, 4),
-
-
-      'esplanade de la defense': utils.searchStop(senderID, 'fr-idf', '%3AOIF%3A100110001%3A1OIF439', '%3AOIF%3ASA%3A59593', 0, 4),
-      'esplanade': utils.searchStop(senderID, 'fr-idf', '%3AOIF%3A100110001%3A1OIF439', '%3AOIF%3ASA%3A59593', 0, 4),
-
-
-      'pont de neuilly': 	utils.searchStop(senderID, 'fr-idf', '%3AOIF%3A100110001%3A1OIF439' , '%3AOIF%3ASA%3A59661', 0, 4),
-      'neuilly': utils.searchStop(senderID, 'fr-idf', '%3AOIF%3A100110001%3A1OIF439' , '%3AOIF%3ASA%3A59661', 0, 4),
-
-      'les sablons': utils.searchStop(senderID, 'fr-idf', '%3AOIF%3A100110001%3A1OIF439' , '%3AOIF%3ASA%3A59250', 0, 4),
-
-      'porte maillot': utils.searchStop(senderID, 'fr-idf', '%3AOIF%3A100110001%3A1OIF439' , '%3AOIF%3ASA%3A8738102', 0, 4),
-
-      'argentine': utils.searchStop(senderID, 'fr-idf', '%3AOIF%3A100110001%3A1OIF439' , '%3AOIF%3ASA%3A59237', 0, 4),
-
-      'georges v': utils.searchStop(senderID, 'fr-idf', '%3AOIF%3A100110001%3A1OIF439' , '%3AOIF%3ASA%3A59234', 0, 4),
-      'georges 5': utils.searchStop(senderID, 'fr-idf', '%3AOIF%3A100110001%3A1OIF439' , '%3AOIF%3ASA%3A59234', 0, 4),
-
-      'concorde': utils.searchStop(senderID, 'fr-idf', '%3AOIF%3A100110001%3A1OIF439' , '%3AOIF%3ASA%3A59235', 0, 4),
-
-      'tuileries': utils.searchStop(senderID, 'fr-idf', '%3AOIF%3A100110001%3A1OIF439' , '%3AOIF%3ASA%3A59226', 0, 4),
-
-      'louvre rivoli': utils.searchStop(senderID, 'fr-idf', '%3AOIF%3A100110001%3A1OIF439' , '%3AOIF%3ASA%3A59231', 0, 4),
-
-      'hotel de ville': utils.searchStop(senderID, 'fr-idf', '%3AOIF%3A100110001%3A1OIF439' , '%3AOIF%3ASA%3A59590', 0, 4),	 
-
-      'saint paul': utils.searchStop(senderID, 'fr-idf', '%3AOIF%3A100110001%3A1OIF439' , '%3AOIF%3ASA%3A59225', 0, 4),
-
-      'bastille': utils.searchStop(senderID, 'fr-idf', '%3AOIF%3A100110001%3A1OIF439' , '%3AOIF%3ASA%3A59238', 0, 4),
-
-      'gare de lyon': utils.searchStop(senderID, 'fr-idf', '%3AOIF%3A100110001%3A1OIF439' , '%3AOIF%3ASA%3A8768600', 0, 4),
-
-      'nation': 
-        //M1
-        utils.searchStop(senderID, 'fr-idf', '%3AOIF%3A100110001%3A1OIF439' , '%3AOIF%3ASA%3A8775810', 0, 4),
-      'nation':
-        //M2
-        utils.searchStop(senderID, 'fr-idf', '%3AOIF%3A100110002%3A2OIF439' , '%3AOIF%3ASA%3A8775810', 0, 4),
-      'nation':
-        //M9
-        utils.searchStop(senderID, 'fr-idf', '%3AOIF%3A100110009%3A9OIF439' , '%3AOIF%3ASA%3A8775810', 0, 4),
-
-      'porte de vincennes': utils.searchStop(senderID, 'fr-idf', '%3AOIF%3A100110001%3A1OIF439' , '%3AOIF%3ASA%3A59228', 0, 4),
-
-      'saint mande': utils.searchStop(senderID, 'fr-idf', '%3AOIF%3A100110001%3A1OIF439' , '%3AOIF%3ASA%3A59662', 0, 4),
-      'st mande': utils.searchStop(senderID, 'fr-idf', '%3AOIF%3A100110001%3A1OIF439' , '%3AOIF%3ASA%3A59662', 0, 4),
-      'stmande': utils.searchStop(senderID, 'fr-idf', '%3AOIF%3A100110001%3A1OIF439' , '%3AOIF%3ASA%3A59662', 0, 4),
-
-      'berault': utils.searchStop(senderID, 'fr-idf', '%3AOIF%3A100110001%3A1OIF439' , '%3AOIF%3ASA%3A59596', 0, 4),
-
-      'chateau de vincennes': utils.searchStop(senderID, 'fr-idf', '%3AOIF%3A100110001%3A1OIF439' , '%3AOIF%3ASA%3A59595', 0, 4),
-      'chateau de vincene': utils.searchStop(senderID, 'fr-idf', '%3AOIF%3A100110001%3A1OIF439' , '%3AOIF%3ASA%3A59595', 0, 4),
-
-      'default': 'No stop found, please try again.'*/
-    }
-  console.log(choice);
-  stops[messageText]() || stops['default'];
-    
-}
-
-/*exports.stopSearchTest = function stopSearch (stop) {
-    findStop(stop).then( response => {
-        return new Promise ( (resolve, reject) => {
-            setTimeout( () => {
-                resolve(console.log(response));
-            }, 3000);
-        });
-    }).then(response =>{
-        utils.callSendAPI();
-    });
-}*/
-
-
-
-
-
-///////////////////////////
-// SWITCH CASES
-//////////////////////////
 
 exports.stopSwitch = function stopSwitch (event) {
   return new Promise ( (resolve, reject) => {

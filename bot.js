@@ -4,10 +4,17 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const request = require('request');
 const path = require('path');
-const removeDiacritics = require('diacritics').remove;
+//const removeDiacritics = require('diacritics').remove;
 const utils = require('./lib/utils.js');
-const test1 = require('./test.js');
+const gAPI = require('./lib/googleAPI.js');
+const stopQ = require('./lib/searchStop.js');
+const sendH = require('./lib/sendHelpers.js');
 const lignesAll = require('./lignes/allStops.js');
+const userDeets = require('./lib/getUserDetails.js');
+const cta = require('./lib/getStarted.js');
+//const hash = require('./lignes/allStops-HashTable.js');
+//const tool = require ('./test/tools.js');
+//const test1 = require('./test.js');
 
 var messengerButton = "<html><head><title>Facebook Messenger Bot</title></head><body><h1>Facebook Messenger Bot</h1>This is a bot based on Messenger Platform QuickStart. For more details, see their <a href=\"https://developers.facebook.com/docs/messenger-platform/guides/quick-start\">docs</a>.<footer id=\"gWidget\"></footer><script src=\"https://widget.glitch.me/widget.min.js\"></script></body></html>";
 
@@ -73,6 +80,8 @@ app.get('/', function(req, res) {
   res.end();
 });
 
+cta.setAndGet(); 
+
 // Message processing
 app.post('/webhook', function (req, res) {
   console.log(req.body);
@@ -106,18 +115,19 @@ app.post('/webhook', function (req, res) {
     res.sendStatus(200);
   }
 });
- 
+
 // Incoming events handling
 function receivedMessage(event) {
+  //console.time('Promise timer');
   var senderID = event.sender.id;
   var recipientID = event.recipient.id;
   var timeOfMessage = event.timestamp;
   var messageId = event.message.mid;
-  
+
   console.log("Received message for user %d and page %d at %d with message:", senderID, recipientID, timeOfMessage);
   console.log(JSON.stringify(event.message));
-  
-  //Run Switch Statement
+      
+  //Original, full Switch Statement
   lignesAll.switchAllStops(event);        
 }
 
