@@ -5,6 +5,8 @@
 * - General chat responses
 */
 
+"use strict"
+
 const utils = require('../lib/utils.js');
 const stopQ = require('../lib/searchStop.js');
 const gAPI = require('../lib/googleAPI.js');
@@ -15,9 +17,7 @@ exports.switchAllStops = function switchAllStops (event) {
   var senderID = event.sender.id;
   var recipientID = event.recipient.id;
   var timeOfMessage = event.timestamp;
-  
-  console.log(event);
-    
+      
   //event = message vars
   if (event.message) {
     var message = event.message;
@@ -39,6 +39,7 @@ exports.switchAllStops = function switchAllStops (event) {
     //set messageText accordingly and PURGE - is this a postback or a direct message?
     //Incoming message here - de-diacritic...ing? and removing "." + "-"
     var messageText = postback ? utils.cleanseText(postback) : utils.cleanseText(message.text);
+    console.log("message after cleaning: ", messageText)
     // Switch case for all Paris Metro Stops
     switch (messageText) {
         
@@ -47,114 +48,141 @@ exports.switchAllStops = function switchAllStops (event) {
     /////////////////////
         
         case 'demarrer': case 'demarre': case 'get started': case 'inizia':
-        Promise.resolve(sendH.sendTextMessage(senderID, 
-          'Bonjour c\'est ' + 'Metrobot' + '! 😄' 
-          + '\n' +
-          'Écrivez simplement votre arrêt et je vous dirai les prochains horaires! 🚋'
-        )).then(respStr => {
-          return sendH.callSendAPI(respStr);
-        })
-        .then( () => {
-          return Promise.resolve(sendH.shortcutButtonsPB(senderID));
-        })
-        .then( respQR => {
-          return sendH.callSendAPI(respQR);
-        })
-        .catch(err=>{
-          console.log(err)
-        });
-        break;
+          /*let btnPB = sendH.shortcutButtonsPB(senderID);
+          Promise.resolve(btnPB)
+            .then(resp => {
+              sendH.callSendAPI(resp)
+            })
+            .catch( err => {
+              console.log(err)
+            });*/
+          sendH.shortcutButtonsPB(senderID); //sends def text value for get started
+          break;
         
     //////////////////////
     // Conversation 1
     /////////////////////
               
       case 'actions': /*[greeting]*/ case 'on peut faire quoi': /*[greeting]*/ case 'qu\'est ce que je peux faire': /*[greeting]*/ case 'que sais tu faire': /*[greeting]*/ case 't\'es la': /*[greeting]*/ case 'besoin de toi': /*[greeting]*/ case 'help': /*[greeting]*/ case 'aide': /*[greeting]*/ case 'conseil': /*[greeting]*/ case 'comment pouvez vous m\'aider': /*[greeting]*/ case 'que faites-vous': /*[greeting]*/ case 'que faire': /*[greeting]*/ case 'pouvez-vous m\'aider': /*[greeting]*/ case 'quel travail faites vous': /*[greeting]*/ case 'en quoi etes-vous utile': /*[greeting]*/
-        sendH.sendTextMessage(senderID, 'Nope');
+        sendH.sendTextMessagePromise(senderID, 'Nope').then(resp => {
+          return sendH.callSendPromise(resp);
+        });
         break;
         
       case 'bonjour': /*[entrance]*/ case 'coucou': /*[entrance]*/ case 'hello': /*[entrance]*/ case 'salut': /*[entrance]*/ case 'yo': /*[entrance]*/ case 'hey': /*[entrance]*/ case 'welcome': /*[entrance]*/ case 'hi': /*[entrance]*/
-        sendH.sendTextMessage(senderID, 'Nope');
+        userDeets.getUserDetails(senderID)
+        .then(userDet => {
+          sendH.shortcutButtonsPB(senderID,'Bonjour à toi ' + userDet.first_name +  ' & bienvenue! 👋 😀');
+        });
         break;
         
       case 'bye': /*[farewell]*/ case 'stop': /*[farewell]*/ case 'stopper': /*[farewell]*/ case 'ciao': /*[farewell]*/ case 'a plus': /*[farewell]*/ case 'a plus tard': /*[farewell]*/ case 'a+': /*[farewell]*/ case 'exit': /*[farewell]*/ case 'quitter': /*[farewell]*/ case 'goodbye': /*[farewell]*/ case 'au revoir': /*[farewell]*/ case 'a bientot': /*[farewell]*/ case 'bonne soiree': /*[farewell]*/ case 'bonne journee': /*[farewell]*/ case 'bonne nuit': /*[farewell]*/
-        sendH.sendTextMessage(senderID, 'Nope');
+        sendH.sendTextMessage(senderID,'On se quitte, pour mieux se retrouver! A bientôt 😄')
         break;
         
-      case 'yes': /*[yes]*/ case 'oui': /*[yes]*/ case 'yeah': /*[yes]*/ case 'yep': /*[yes]*/ case 'ok': /*[yes]*/ case 'oki': /*[yes]*/ case 'okay': /*[yes]*/ case 'non': /*[no]*/ case 'nope': /*[no]*/ case 'nah': /*[no]*/ 
-        sendH.sendTextMessage(senderID, 'Nope');
+      case 'yes': /*[yes]*/ case 'oui': /*[yes]*/ case 'yeah': /*[yes]*/ case 'yep': /*[yes]*/ case 'ok': /*[yes]*/ case 'oki': /*[yes]*/ case 'okay': /*[yes]*/ 
+        sendH.shortcutButtonsPB(senderID, '👍');
         break;
         
-      case 'your name': /*[what]*/ case 'comment tu t\'appelles': /*[what]*/ case 'ton prenom': /*[what]*/ case 'qui es tu': /*[what]*/ case 'you called': /*[what]*/ case 'who are you': /*[what]*/ case 'who': /*[what]*/ case 'about': /*[what]*/ case 'ton nom': /*[what]*/ case 'tu t\'appelles': /*[what]*/ case 'nom prenom': /*[what]*/
-        sendH.sendTextMessage(senderID, 'Nope');
+      case 'non': case 'nope': case 'nah':
+        sendH.sendTextMessage(senderID,'🙄');
+        break;
+        
+      case 'whats your name': /*[what]*/ case 'comment tu t\'appelles': /*[what]*/ case 'ton prenom': /*[what]*/ case 'qui es tu': /*[what]*/ case 'you called': /*[what]*/ case 'who are you': /*[what]*/ case 'who': /*[what]*/ case 'about': /*[what]*/ case 'ton nom': /*[what]*/ case 'tu t\'appelles': /*[what]*/ case 'nom prenom': /*[what]*/
+        sendH.sendTextMessage(
+          senderID, 
+          'Je suis ' + 'Metrobot'+ ' , votre assistant virtuel 😉'
+          + '\nAvec moi, vous ne raterez plus jamais votre métro! 🚇'
+        );
         break;
         
       case 'how old': /*[age]*/ case 'your age': /*[age]*/ case 'quel est ton age': /*[age]*/ case 'ton age': /*[age]*/ case 'tu as quel age': /*[age]*/ case 'quel age as': /*[age]*/
-        sendH.sendTextMessage(senderID, 'Nope');
+        sendH.sendTextMessage(senderID, 'Je n\'ai pas vraiment d\'age, je suis juste un bot 😢');
         break;
         
       case 'boy': /*[gender]*/ case 'mec': /*[gender]*/ case 'meuf': /*[gender]*/ case 'garcon': /*[gender]*/ case 'girl': /*[gender]*/ case 'fille': /*[gender]*/ case 'male': /*[gender]*/ case 'female': /*[gender]*/ case 'femme': /*[gender]*/ case 'sex': /*[gender]*/ case 'sexe': /*[gender]*/
-        sendH.sendTextMessage(senderID, 'Nope');
+        sendH.sendTextMessage(senderID, 'A vous de choisir 👦 👧');
         break;
         
       case 'made you': /*[made]*/ case 'who made you': /*[made]*/ case 'made u': /*[made]*/ case 'ton createur': /*[made]*/ case 'qui t\'a fabrique': /*[made]*/ case 'qui t\'a concu': /*[made]*/ case 'qui t\'a concu': /*[made]*/ case 'qui est ton createur': /*[made]*/ case 'construit': /*[made]*/ case 'built you': /*[made]*/ case 'qui t\'a fait': /*[made]*/ case 'qui t\'a cree': /*[made]*/
-        sendH.sendTextMessage(senderID, 'Nope');
+        sendH.sendTextMessage(senderID, 'Quelqu\'un de performant chez http://facebots.fr ❤️');
         break;
         
       case 'favorite color': /*[color]*/ case 'fav color': /*[color]*/ case 'couleur': /*[color]*/ case 'couleur favorite': /*[color]*/
-        sendH.sendTextMessage(senderID, 'Nope');
+        sendH.sendTextMessage(senderID, 'Je n\'arrive pas à choisir entre #42f49b & #4298f4 🤔');
         break;
         
       case 'drogue': /*[censored]*/ case 'alcool': /*[censored]*/ case 'cannabis': /*[censored]*/ case 'coke': /*[censored]*/ case 'trump': /*[censored]*/ case 'donald trump': /*[censored]*/ case 'guns': /*[censored]*/ case 'gun': /*[censored]*/ case 'arme': /*[censored]*/ case 'armes': /*[censored]*/ case 'daesh': /*[censored]*/ case 'attaque': /*[censored]*/ case 'terrorisme': /*[censored]*/ case 'speed': /*[censored]*/ case 'dope': /*[censored]*/ case 'baise': /*[censored]*/ case 'xxx': /*[censored]*/ case 'fuck': /*[censored]*/ case 'anal': /*[censored]*/ case 'couilles': /*[censored]*/ case 'couille': /*[censored]*/ case 'pussy': /*[censored]*/ case 'chatte': /*[censored]*/ case 'bite': /*[censored]*/ case 'cul': /*[censored]*/ case 'porno': /*[censored]*/
-        sendH.sendTextMessage(senderID, 'Nope');
+        sendH.sendTextMessage(senderID, 'En voilà des manières! 😐\nReprenons normalement 😊');
         break;
         
       case 'bus': /*[features]*/ case 'liane': /*[features]*/ case 'meteo': /*[features]*/ case 'meteo': /*[features]*/ case 'cinema': /*[features]*/ case 'sncf': /*[features]*/ case 'tgv': /*[features]*/ case 'voiture': /*[features]*/ case 'musique': /*[features]*/ case 'voyage': /*[features]*/ case 'piscine': /*[features]*/ case 'marketing': /*[features]*/ case 'publicite': /*[features]*/ case 'mc do': /*[features]*/ case 'mc donalds': /*[features]*/ case 'apple': /*[features]*/ case 'windows': /*[features]*/ case 'booking': /*[features]*/ case 'politique': /*[features]*/ case 'avion': /*[features]*/ case 'restaurant': /*[features]*/ case 'chien': /*[features]*/ case 'chat': /*[features]*/ case 'animaux': /*[features]*/ case 'gorille': /*[features]*/ case 'crocodile': /*[features]*/
-        sendH.sendTextMessage(senderID, 'Nope');
+        sendH.sendTextMessage(senderID, 'Je ne suis pas encore prêt pour répondre à ce genre de proposition. Peut être bientôt grâce à vous!');
         break;
         
       case 'tu vas bien': /*[humor]*/ case 'comment tu vas': /*[humor]*/ case 'comment vas tu': case 'coment tu va': /*[humor]*/ case 'ca va': /*[humor]*/ case 'sa va': /*[humor]*/ case 'ca va bien': /*[humor]*/ case 'la forme': /*[humor]*/ case 'ca roule': /*[humor]*/
-        sendH.sendTextMessage(senderID, 'Nope');
+        Promise.resolve(utils.randNum(0,6))
+          .then(number => {
+            var humorResponseArr = ['Je suis chargé comme une pile électrique! ⚡️🔋','J\'ai du 240 dans mes veines ⚡️','Une belle journée sous un soleil artificiel ☀️','Je t\'attendais pour être franc 😘','J\'ai la pêche robotique!! 🍑','Je suis comme un courant dans un flux 💡'];
+            return humorResponseArr[number];
+          })
+          .then( (response) => {
+            sendH.sendTextMessage(senderID, response);
+          })
         break;
         
       case 'merci': /*[merci]*/ case 'mercii': /*[merci]*/ case '(y)': /*[merci]*/ case 'super': /*[merci]*/ case 'genial': /*[merci]*/ case 'cool': /*[merci]*/ case 'cimer': /*[merci]*/ case '👍': /*[merci]*/ case 'thanks': /*[merci]*/ case 'thx': /*[merci]*/ case 'ty': /*[merci]*/ case 'thanks you': /*[merci]*/
-        sendH.sendTextMessage(senderID, 'Nope');
+        userDeets.getUserDetails(senderID)
+        .then(userDet => {
+          sendH.sendTextMessage(
+            senderID, 
+            'Je suis content de vous avoir aidé ' + userDet.first_name + ', revenez me voir quand vous voulez! 😍'
+          );
+        });
         break;
         
-      case 'quoi de neuf': /*[today]*/ case 't\'as fais quoi aujourd\'hui': /*[today]*/ case 'quoi de nouveau': /*[today]*/ case 'what\'s up': /*[today]*/ case 'tu fais quoi': /*[today]*/ case 'ta journee': /*[today]*/
-        sendH.sendTextMessage(senderID, 'Nope');
+      case 'quoi de neuf': /*[today]*/ case 't\'as fais quoi aujourd\'hui': /*[today]*/ case 'quoi de nouveau': /*[today]*/ case 'what\'s up': /*[today]*/ case 'tu fais quoi': /*[today]*/ case 'ta journee': /*[today]*/       
+        Promise.resolve(utils.randNum(0,5))
+          .then(number => {
+            var hruResponseArr = ['Je viens de manger une pomme en 8bit 🍏','Je mange du popcorn en vous lisant 🍿','Je gère 5000 conversations simultanément 😎','J\'ai piraté la NASA ce matin 🚀','Je colonise Proxima B 🌎'];
+            return hruResponseArr[number];
+          })
+          .then( (response) => {
+            sendH.sendTextMessage(senderID, response);
+          })
         break;
         
       case 'tu geres': /*[gere]*/ case 'tu gere': /*[gere]*/ case 'bravo': /*[gere]*/ case 'felicitations': /*[gere]*/ case 'genial': /*[gere]*/ case 'le meilleur': /*[gere]*/ case 'excellent': /*[gere]*/ case 'awesome': /*[gere]*/ case 'great bot': /*[gere]*/ case 'super': /*[gere]*/
-        sendH.sendTextMessage(senderID, 'Nope');
+        sendH.sendTextMessage(senderID, 'Merci c\'est gentil 😍');
+        sendH.sendGif(senderID,"https://i.giphy.com/hflpSaYuR8xK8.gif");
         break;
         
       case 'pardon': /*[pardon]*/ case 'desole': /*[pardon]*/ case 'je m\'excuse': /*[pardon]*/ case 'excuse moi': /*[pardon]*/
-        sendH.sendTextMessage(senderID, 'Nope');
+        sendH.sendTextMessage(senderID, 'Faute avouée, à moitié pardonnée 😉\nHeureusement je ne suis pas rancunier 😘');
         break;
         
       case 'faux': /*[faux]*/ case 'erreur': /*[faux]*/ case 'errone': /*[faux]*/ case 'fake': /*[faux]*/ case 'probleme': /*[faux]*/ case 'problemes': /*[faux]*/ case 'bugs': /*[faux]*/ case 'bug': /*[faux]*/ case 'bugg': /*[faux]*/ case 'mistake': /*[faux]*/ 
-        sendH.sendTextMessage(senderID, 'Nope');
+        sendH.sendTextMessage(senderID, 'Merci de nous signaler une erreur, nous allons vérifier ça 😉');
         break;
         
       case 'this a bot': /*[robot]*/ case 'you a bot': /*[robot]*/ case 'you real': /*[robot]*/ case 'es tu reel': /*[robot]*/ case 'es tu humain': /*[robot]*/ case 'es tu un robot': /*[robot]*/ case 'you human': /*[robot]*/ case 'what are you': /*[robot]*/ case 'wtf': /*[robot]*/ case 'robot': /*[robot]*/ case 't\'es un bot': /*[robot]*/ case 't\'es un robot': /*[robot]*/ case 't\'es un humain': /*[robot]*/
-        sendH.sendTextMessage(senderID, 'Nope');
+        sendH.sendTextMessage(senderID, 'Je suis un hybride pure souche 😈');
         break;
         
       case 'email': /*[email]*/ case 'mail': /*[email]*/ case 'contacter': /*[email]*/ case 'contact': /*[email]*/ case 'equipe': /*[email]*/ case 'responsable': /*[email]*/ case 'parler a': /*[email]*/
-        sendH.sendTextMessage(senderID, 'Nope');
+        sendH.sendTextMessage(senderID, 'Vous pouvez nous contacter par email à l\'adresse teamtrambots@gmail.com 📩');
         break;
         
       /////////////////////
       /////Humeur
       ///////////////////
 
-      case 'plan 🗺': /*[plan]*/ case 'plan': /*[plan]*/ case 'maps': /*[plan]*/ case 'carte': /*[plan]*/
-        sendH.sendTextMessage(senderID, 'Nope');
+      case 'plan 🗺': case 'plan': case 'maps': case 'carte': case 'map':
+        sendH.sendGif(senderID, 'http://facebots.fr/TramBots/img/bots/plan_prs.png');
         break;
         
       case 'nos villes 🏤': /*[city]*/ case 'nos villes': /*[city]*/ case 'our city': /*[city]*/ case 'our cities': /*[city]*/ case 'nantes': /*[city]*/ case 'strasbourg': /*[city]*/ case 'lyon': /*[city]*/ case 'lille': /*[city]*/ case 'toulouse': /*[city]*/ case 'paris': /*[city]*/ case 'metrobots': /*[city]*/
-        sendH.sendTextMessage(senderID, 'Nope');
+        sendH.sendCityCardSet(senderID);
         break;
         
       case 'je t\'aime': /*[love]*/ case 'love you': /*[love]*/ case 'jtm': /*[love]*/
@@ -176,67 +204,67 @@ exports.switchAllStops = function switchAllStops (event) {
         break;
         
       case '❤️': /*[coeur]*/ case '💕': /*[coeur]*/ case '❣️': /*[coeur]*/ case '💘': /*[coeur]*/ case '💕': /*[coeur]*/ case '😘': /*[coeur]*/
-        sendH.sendTextMessage(senderID, 'Nope');
+        sendH.sendTextMessage(senderID, 'Chez toi ou chez moi? ;)');
         break;
         
       case 'bisous': /*[bisous]*/ case 'bae': /*[bisous]*/ case 'babe': /*[bisous]*/ case 'baby': /*[bisous]*/ case 'bebe': /*[bisous]*/
-        sendH.sendTextMessage(senderID, 'Nope');
+        sendH.sendTextMessage(senderID, 'Trambae t\'embrasse 😘');
         break;
         
       case 'chez toi': /*[cheztoi]*/ case 'chez moi': /*[cheztoi]*/ 
-        sendH.sendTextMessage(senderID, 'Nope');
+        sendH.sendTextMessage(senderID, 'Je passe acheter un Pessac Leognan et go! 😉');
         break;
         
-      case 'es intelligent': /*[compliment]*/ case 'es marrant': /*[compliment]*/ case 'es beau': /*[compliment]*/ case 'es mignon': /*[compliment]*/ case 'es doux': /*[compliment]*/ case 'bg': /*[compliment]*/ case 'physiquement': /*[compliment]*/ case 'je t\'adore': /*[compliment]*/
-        sendH.sendTextMessage(senderID, 'Nope');
+      case 't\'es intelligent': /*[compliment]*/ case 't\'es marrant': /*[compliment]*/ case 't\'es beau': /*[compliment]*/ case 't\'es mignon': /*[compliment]*/ case 't\'es doux': /*[compliment]*/ case 'bg': /*[compliment]*/ case 'physiquement': /*[compliment]*/ case 'je t\'adore': /*[compliment]*/
+        sendH.sendTextMessage(senderID, 'Si j\'avais un coeur, je serai flatté 😇');
         break;
         
       case 'lmao': /*[lol]*/ case 'mdr': /*[lol]*/ case 'lol': /*[lol]*/ case 'xptdr': /*[lol]*/ case 'ptdr': /*[lol]*/ case 'gif': /*[lol]*/ case '😂': /*[lol]*/ case 'hahaha': /*[lol]*/
-        sendH.sendTextMessage(senderID, 'Nope');
+        sendH.sendGif(senderID, 'http://images.huffingtonpost.com/2014-04-24-2.gif');
         break;
         
       case 'frere': /*[maggle]*/ case 'gros': /*[maggle]*/ case 'ma gueule': /*[maggle]*/ case 'dude': /*[maggle]*/ case 'wesh': /*[maggle]*/ case 'wsh': /*[maggle]*/ case 'poto': /*[maggle]*/ case 'frate': /*[maggle]*/ case 'maggle': /*[maggle]*/
-        sendH.sendTextMessage(senderID, 'Nope');
+        sendH.sendTextMessage(senderID, 'Sì sì maggle ✌️');
         break;
         
       case 'vin rouge': /*[vin]*/ case 'vin blanc': /*[vin]*/ case 'vin rose': /*[vin]*/
-        sendH.sendTextMessage(senderID, 'Nope');
+        sendH.sendTextMessage(senderID, 'Je suis comme W.Churchill, blanc ou rouge, je n\'ai pas de préférence je n’aime que le meilleur. 🍷');
         break;
         
       case 'ca daille': /*[bordelais]*/ case 'gave': /*[bordelais]*/ case 'gave': /*[bordelais]*/
-        sendH.sendTextMessage(senderID, 'Nope');
+        sendH.sendTextMessage(senderID, 'Toi t\'es un vrai Bordelais hein 😉');
         break;
         
       case 'bourrer': /*[drunk]*/ case 'bourer': /*[drunk]*/ case 'boure': /*[drunk]*/ case 'arrache': /*[drunk]*/ case 'demonte': /*[drunk]*/ case 'torche': /*[drunk]*/ case 'ivre': /*[drunk]*/ case 'saoul': /*[drunk]*/
-        sendH.sendTextMessage(senderID, 'Nope');
+        sendH.sendTextMessage(senderID, 'Mio asdi jpeuc etrz gravé torchet 🍷🍺😂');
         break;
         
       case 't\'es mechant': /*[mechant]*/ case 'mechant': /*[mechant]*/ case 'pas gentil': /*[mechant]*/ case 'je te deteste': /*[mechant]*/
-        sendH.sendTextMessage(senderID, 'Nope');
+        sendH.sendTextMessage(senderID, 'Juste ce qu\'il faut 😈');
         break;
         
       case 'suce': /*[suck]*/ case 'suce': /*[suck]*/ case 'sucer': /*[suck]*/ case 'ma bite': /*[suck]*/ case 'mon sexe': /*[suck]*/
-        sendH.sendTextMessage(senderID, 'Nope');
+        sendH.sendTextMessage(senderID, 'Attention à toi ou je vais te faire avaler mon huile de moteur 🛠');
         break;
         
       case 'ta gueule': /*[tg]*/ case 'tg': /*[tg]*/ case 'ferme ta gueule': /*[tg]*/ case 'shut up': /*[tg]*/ case 'stfu': /*[tg]*/ case 'shut the fuck up': /*[tg]*/
-        sendH.sendTextMessage(senderID, 'Nope');
+        sendH.sendTextMessage(senderID, 'Vous n\'êtes pas obliger de me répondre si vous ne voulez plus me parler 😐');
         break;
         
       case 'encule': /*[enculer]*/ case 'enculer': /*[enculer]*/ case 'connard': /*[enculer]*/ case 'connasse': /*[enculer]*/ case 'ta race': /*[enculer]*/ case 'petasse': /*[enculer]*/ case 'salope': /*[enculer]*/ case 'batard': /*[enculer]*/ case 'pd': /*[enculer]*/
-        sendH.sendTextMessage(senderID, 'Nope');
+        sendH.sendTextMessage(senderID, 'Ce n\'est pas très gentil humanoïde 💀\nN\'oublie pas que tu vas mourir avant moi 😉');
         break;
         
       case 'ta mere': /*[mama]*/ case 'maman': /*[mama]*/ case 'milf': /*[mama]*/ case 'puta madre': /*[mama]*/ case 'mother fucker': /*[mama]*/ case 'madafaka': /*[mama]*/ case 'fdp': /*[mama]*/ case 'fils de pute': /*[mama]*/
-        sendH.sendTextMessage(senderID, 'Nope');
+        sendH.sendTextMessage(senderID, 'Ehoh! On parle pas des mamans ici! 👀');
         break;
         
       case 'debile': /*[con]*/ case 'idiot': /*[con]*/ case 'stupide': /*[con]*/ case 't\'es con': /*[con]*/ case 'bolos': /*[con]*/ case 'noob': /*[con]*/ 
-        sendH.sendTextMessage(senderID, 'Nope');
+        sendH.sendTextMessage(senderID, 'La stupidité n\'a d\'égale qu\'a celui qui là prononce 😇');
         break;
         
       case 't\'es nul': /*[idem]*/ case 't\'es moche': /*[idem]*/ case 'tu es moche': /*[idem]*/ case 't\'es laid': /*[idem]*/ case 'tu es chiant': /*[idem]*/ case 't\'es relou': /*[idem]*/ case 't\'es lourd': /*[idem]*/ case 'tu es relou': /*[idem]*/
-        sendH.sendTextMessage(senderID, 'Nope');
+        sendH.sendTextMessage(senderID, 'Toi même 🤗');
         break;
         
     ////////////////////////////////////////

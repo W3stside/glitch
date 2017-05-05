@@ -1,3 +1,5 @@
+"use strict";
+
 const utils = require('../lib/utils.js');
 
 /*HASH TABLE - a dictionary/hash map data structure for storing key/value pairs. Finding

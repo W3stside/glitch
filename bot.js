@@ -14,12 +14,12 @@ const userDeets = require('./lib/getUserDetails.js');
 const cta = require('./lib/getStarted.js');
 //const hash = require('./lignes/allStops-HashTable.js');
 //const tool = require ('./test/tools.js');
-//const test1 = require('./test.js');
+const pSegCases = require('./test/promiseSwitchCase.js');
 
 var messengerButton = "<html><head><title>Facebook Messenger Bot</title></head><body><h1>Facebook Messenger Bot</h1>This is a bot based on Messenger Platform QuickStart. For more details, see their <a href=\"https://developers.facebook.com/docs/messenger-platform/guides/quick-start\">docs</a>.<footer id=\"gWidget\"></footer><script src=\"https://widget.glitch.me/widget.min.js\"></script></body></html>";
 
 //Whitelist them domains bruh
-/*function setWhiteList () {
+function setWhiteList () {
   request(
     {
       method: 'POST',
@@ -28,7 +28,7 @@ var messengerButton = "<html><head><title>Facebook Messenger Bot</title></head><
         'content-type': 'application/json' 
       },
       body: {
-        whitelisted_domains: ["http://google.com","https://imgur.com"]
+        whitelisted_domains: ["http://google.com","https://imgur.com","https://giphy.com, http://i.giphy.com", "https://facebots.fr"]
       },
       json: true
     }, function (error, response, body) {
@@ -50,7 +50,7 @@ var messengerButton = "<html><head><title>Facebook Messenger Bot</title></head><
       }
     }
   );
-}*/
+}
 //setWhiteList();
 
 // The rest of the code implements the routes for our Express server.
@@ -80,7 +80,8 @@ app.get('/', function(req, res) {
   res.end();
 });
 
-cta.setAndGet(); 
+//sets get started button
+//cta.setOrDeleteGreet('DELETE'); 
 
 // Message processing
 app.post('/webhook', function (req, res) {
@@ -118,15 +119,39 @@ app.post('/webhook', function (req, res) {
 
 // Incoming events handling
 function receivedMessage(event) {
-  //console.time('Promise timer');
-  var senderID = event.sender.id;
-  var recipientID = event.recipient.id;
-  var timeOfMessage = event.timestamp;
-  var messageId = event.message.mid;
-
-  console.log("Received message for user %d and page %d at %d with message:", senderID, recipientID, timeOfMessage);
-  console.log(JSON.stringify(event.message));
-      
+  
+  var eData = {
+    senderID: event.sender.id,
+    recipientID: event.recipient.id,
+    messageText: event.message.text,
+    cleanText: utils.cleanseText(event.message.text),
+    timeOfMessage: event.timestamp,
+    messageId: event.message.mid
+  }
+  
+  console.log("Received message for user %d and page %d at %d with message:", eData.senderID, eData.recipientID, eData.timeOfMessage);
+  console.log(JSON.stringify(eData.messageText));
+    
+  //Simply loops through Obj with Switch-Cases as Properties and Resolves each one by one 
+  //Returns to Var as Array
+  //var promiseResolveArr = utils.switchCasePromiseResolver(pSegCases.switchCaseLignes, event);
+  
+  //Take all Resolved Promises from above
+  /*
+  Promise.all(promiseResolveArr)
+     //Check values of promiseResolverArr and: IF there are NO values as a result of _isNull
+     // return default. ELSE send stop info
+    .then(pArrValues => {
+      //create null checker if needed, else do nothing
+      !Array.prototype._isNull ? Array.prototype._isNull = function () { return this.join().replace(/[false,]/g,'')} : null;
+    
+      return pArrValues._isNull().length === 0 ? [{senderID: eData.senderID, text: 'No stop found'}] : pArrValues.filter(function (value) {return value !== false;})
+    })
+    .then(values => {
+      sendH.sendTextMessage(values[0].senderID, values[0].text);
+    })
+   */
+  
   //Original, full Switch Statement
   lignesAll.switchAllStops(event);        
 }
