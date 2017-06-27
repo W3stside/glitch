@@ -1,27 +1,37 @@
 {
-	"name": "messenger-bot",
-	"version": "1.0.0",
-	"description": "Messenger Platform QuickStart Demo",
-	"main": "index.js",
-	"scripts": {
-		"start": "node bot.js"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/vernon99/messenger-quick-start.git"
-	},
-	"keywords": [
-		"messenger",
-		"bot",
-		"quickstart"
-	],
-	"author": "Mikhail Larionov <mlarionov@fb.com>",
-	"license": "MIT",
-	"homepage": "https://developers.facebook.com/docs/messenger-platform/guides/quick-start",
-	"dependencies": {
-		"request": "^2.72.0",
-		"express": "*",
-		"body-parser": "*",
-		"diacritics": "^1.2.3"
-	}
+  "name": "messenger-bot",
+  "version": "1.0.0",
+  "description": "Messenger Platform QuickStart Demo",
+  "main": "index.js",
+  "scripts": {
+    "start": "babel-node bot.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vernon99/messenger-quick-start.git"
+  },
+  "keywords": [
+    "messenger",
+    "bot",
+    "quickstart"
+  ],
+  "author": "Mikhail Larionov <mlarionov@fb.com>",
+  "license": "MIT",
+  "homepage": "https://developers.facebook.com/docs/messenger-platform/guides/quick-start",
+  "dependencies": {
+    "request": "^2.72.0",
+    "express": "*",
+    "body-parser": "*",
+    "diacritics": "^1.2.3",
+    "babel-core": "*",
+    "babel-cli": "*",
+    "babel-preset-latest": "*",
+    "opn": "^5.0.0",
+    "redux": "^3.6.0"
+  },
+  "babel": {
+    "presets": [
+      "latest"
+    ]
+  }
 }
