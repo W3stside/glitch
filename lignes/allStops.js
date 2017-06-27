@@ -6,18 +6,19 @@
 */
 
 "use strict"
-
-const utils = require('../lib/utils.js');
-const stopQ = require('../lib/searchStop.js');
-const gAPI = require('../lib/googleAPI.js');
-const sendH = require('../lib/sendHelpers.js');
-const userDeets = require('../lib/getUserDetails.js');
+import * as bPrints from '../lib/blueprints.js'
+import * as gAPI from '../lib/googleAPI.js'
+import * as sendH from '../lib/sendHelpers.js'
+import * as stopQ from '../lib/searchStop.js'
+import {buildUserDetObj as userInfo} from '../lib/getUserDetails.js'
+import * as utils from '../lib/utils.js'
+const opn = require('opn');
 
 exports.switchAllStops = function switchAllStops (event) {
   var senderID = event.sender.id;
   var recipientID = event.recipient.id;
   var timeOfMessage = event.timestamp;
-      
+
   //event = message vars
   if (event.message) {
     var message = event.message;
@@ -39,10 +40,9 @@ exports.switchAllStops = function switchAllStops (event) {
     //set messageText accordingly and PURGE - is this a postback or a direct message?
     //Incoming message here - de-diacritic...ing? and removing "." + "-"
     var messageText = postback ? utils.cleanseText(postback) : utils.cleanseText(message.text);
-    console.log("message after cleaning: ", messageText)
     // Switch case for all Paris Metro Stops
     switch (messageText) {
-        
+                
     /////////////////////
     // Get Started - Initial Start
     /////////////////////
@@ -68,14 +68,7 @@ exports.switchAllStops = function switchAllStops (event) {
           return sendH.callSendPromise(resp);
         });
         break;
-        
-      case 'bonjour': /*[entrance]*/ case 'coucou': /*[entrance]*/ case 'hello': /*[entrance]*/ case 'salut': /*[entrance]*/ case 'yo': /*[entrance]*/ case 'hey': /*[entrance]*/ case 'welcome': /*[entrance]*/ case 'hi': /*[entrance]*/
-        userDeets.getUserDetails(senderID)
-        .then(userDet => {
-          sendH.shortcutButtonsPB(senderID,'Bonjour à toi ' + userDet.first_name +  ' & bienvenue! 👋 😀');
-        });
-        break;
-        
+                
       case 'bye': /*[farewell]*/ case 'stop': /*[farewell]*/ case 'stopper': /*[farewell]*/ case 'ciao': /*[farewell]*/ case 'a plus': /*[farewell]*/ case 'a plus tard': /*[farewell]*/ case 'a+': /*[farewell]*/ case 'exit': /*[farewell]*/ case 'quitter': /*[farewell]*/ case 'goodbye': /*[farewell]*/ case 'au revoir': /*[farewell]*/ case 'a bientot': /*[farewell]*/ case 'bonne soiree': /*[farewell]*/ case 'bonne journee': /*[farewell]*/ case 'bonne nuit': /*[farewell]*/
         sendH.sendTextMessage(senderID,'On se quitte, pour mieux se retrouver! A bientôt 😄')
         break;
@@ -132,7 +125,7 @@ exports.switchAllStops = function switchAllStops (event) {
         break;
         
       case 'merci': /*[merci]*/ case 'mercii': /*[merci]*/ case '(y)': /*[merci]*/ case 'super': /*[merci]*/ case 'genial': /*[merci]*/ case 'cool': /*[merci]*/ case 'cimer': /*[merci]*/ case '👍': /*[merci]*/ case 'thanks': /*[merci]*/ case 'thx': /*[merci]*/ case 'ty': /*[merci]*/ case 'thanks you': /*[merci]*/
-        userDeets.getUserDetails(senderID)
+        userInfo.getUserDetails(senderID)
         .then(userDet => {
           sendH.sendTextMessage(
             senderID, 
@@ -176,18 +169,10 @@ exports.switchAllStops = function switchAllStops (event) {
       /////////////////////
       /////Humeur
       ///////////////////
-
-      case 'plan 🗺': case 'plan': case 'maps': case 'carte': case 'map':
-        sendH.sendGif(senderID, 'http://facebots.fr/TramBots/img/bots/plan_prs.png');
-        break;
-        
-      case 'nos villes 🏤': /*[city]*/ case 'nos villes': /*[city]*/ case 'our city': /*[city]*/ case 'our cities': /*[city]*/ case 'nantes': /*[city]*/ case 'strasbourg': /*[city]*/ case 'lyon': /*[city]*/ case 'lille': /*[city]*/ case 'toulouse': /*[city]*/ case 'paris': /*[city]*/ case 'metrobots': /*[city]*/
-        sendH.sendCityCardSet(senderID);
-        break;
-        
+               
       case 'je t\'aime': /*[love]*/ case 'love you': /*[love]*/ case 'jtm': /*[love]*/
-        //call userDeets and get the user's first name from the request -- pass that as the promise to then
-        userDeets.getUserDetails(senderID).then(resp => {
+        //call userInfo and get the user's first name from the request -- pass that as the promise to then
+        userInfo.getUserDetails(senderID).then(resp => {
           //query resp and get first name --  return it to pass
           return resp.first_name;
         })
@@ -266,14 +251,34 @@ exports.switchAllStops = function switchAllStops (event) {
       case 't\'es nul': /*[idem]*/ case 't\'es moche': /*[idem]*/ case 'tu es moche': /*[idem]*/ case 't\'es laid': /*[idem]*/ case 'tu es chiant': /*[idem]*/ case 't\'es relou': /*[idem]*/ case 't\'es lourd': /*[idem]*/ case 'tu es relou': /*[idem]*/
         sendH.sendTextMessage(senderID, 'Toi même 🤗');
         break;
-        
+     
+//Shortcut buttons    
     ////////////////////////////////////////
     // Request User Location
     ///////////////////////////////////////    
-      case 'autour de moi': case 'nearest stop': case 'arret proche': case 'arrets proches': case 'nearby': case 'nearby stop': case 'nearby stops':
+      case 'autour de moi': case 'nearest stop': case 'arret proche 📍': case 'arret proche': case 'arrets proches': case 'nearby': case 'nearby stop': case 'nearby stops':
         gAPI.nearbyStops(senderID, messageText);
         break;
-
+        
+      case 'plan 🗺': case 'plan': case 'maps': case 'carte': case 'map':
+        sendH.sendGif(senderID, 'http://facebots.fr/TramBots/img/bots/plan_prs.png');
+        break;
+              
+      case 'home': case 'maison': case 'home 🏠': case 'accueil': case 'menu':
+        sendH.shortcutButtonsPB (senderID, 'Heureux de vous revoir ☺️');
+        break;
+        
+      case 'nos villes 🏤': /*[city]*/ case 'nos villes': /*[city]*/ case 'our city': /*[city]*/ case 'our cities': /*[city]*/ case 'nantes': /*[city]*/ case 'strasbourg': /*[city]*/ case 'lyon': /*[city]*/ case 'lille': /*[city]*/ case 'toulouse': /*[city]*/ case 'paris': /*[city]*/ case 'metrobots': /*[city]*/
+        sendH.sendCityCardSet(senderID);
+        break;
+        
+      case 'bonjour': /*[entrance]*/ case 'coucou': /*[entrance]*/ case 'hello': /*[entrance]*/ case 'salut': /*[entrance]*/ case 'yo': /*[entrance]*/ case 'hey': /*[entrance]*/ case 'welcome': /*[entrance]*/ case 'hi': /*[entrance]*/
+        userInfo(senderID)
+        .then(userDet => {
+          sendH.shortcutButtonsPB(senderID,'Bonjour à toi ' + userDet.first_name +  ' & bienvenue! 👋 😀');
+        });
+        break;
+        
     /////////////////////////////////////////////////////////
     // User requests more times
     ////////////////////////////////////////////////////////    
@@ -1953,9 +1958,11 @@ exports.switchAllStops = function switchAllStops (event) {
   } 
   //else run Google Maps Stop Search
   else if (messageAttachments && senderCoordinates) {
-    Promise.resolve (sendH.sendTextMessage(senderID, 'Merci, nous avons bien reçu votre localisation, nous recherchons les arrêts autour de vous.')).then ( () => {
+    Promise.resolve (sendH.sendTextMessagePromise(senderID, 'Merci, nous avons bien reçu votre localisation, nous recherchons les arrêts autour de vous.')).then ( () => {
       //start Google Maps API search                          
       gAPI.fullGoogleSearch(senderCoordinates.lat + ',' + senderCoordinates.long, null, senderID);
     });
+  } else {
+    sendH.sendTextMessage(senderID,'multiPartMessage was true');
   }
 }
